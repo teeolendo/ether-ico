@@ -1,6 +1,6 @@
-# EthStarter CrowdFunding Dapp
+# ICO Dapp
 
-This is a full stack dapp comprised of Solidity smart contracts for a Eth Kickstarter clone. The project is comprised of:
+This is a full stack dapp comprised of Solidity smart contracts for a ICO with token issuance. The project is comprised of:
 - React SPA scafolded using Create React App
 - Two Solidity smart contracts. One for projects and the other for the administration of projects.
 - Hardhart and Ether.js
@@ -10,35 +10,12 @@ This is a full stack dapp comprised of Solidity smart contracts for a Eth Kickst
 # Implementation
 
 Two smart contracts are contained in the `src/contracts` folder. These are the:
-- EthStarter: Factory contract for creating projects.
-- EthProject: Crowdfunding project contracts that implements a portion of ERC721 for token minting based on contributions.
-- Two basic unit tests in `src/test` for both smart contracts. The test coverage is very low and I'll be adding more tests in the future.
+- SpaceICO: ICO Management Smart Contract
+- Spacetoken: ERC20-compliant smart contract
+- Two basic unit tests in `src/test` for both smart contracts.
 
 # Project Brief
-- The smart contract is reusable; multiple projects can be registered and accept ETH concurrently.
-- The goal is a preset amount of ETH.
-  - This cannot be changed after a project gets created.
-- Regarding contributing:
-  - The contribute amount must be at least 0.01 ETH.
-  - There is no upper limit.
-  - Anyone can contribute to the project, including the creator.
-  - One address can contribute as many times as they like.
-- Regarding tiers:
-  - There are three tiers.
-  - Bronze tier is granted to anyone contribution.
-  - Silver tier is granted to a total contribution of at least 0.25 ETH.
-  - Gold tier is granted to a total contribution of at least 1 ETH.
-  - Tiers should be granted immediately so other apps can read them.
-  - "Total contribution" is scoped per-project (like kickstarter).
-- If the project is not fully funded within 30 days:
-  - The project goal is considered to have failed.
-  - No one can contribute anymore.
-  - Supporters get their money back.
-  - Tier grants are revoked.
-- Once a project becomes fully funded:
-  - No one else can contribute (however, the last contribution can go over the goal).
-  - The creator can withdraw any percentage of contributed funds.
-- The creator can choose to cancel their project before the 30 days are over, which has the same effect as a project failing.
+The smart contract aims to raise 30,000 Ether by performing an ICO. The ICO should only be available to whitelisted private investors starting in Phase Seed with a maximum total private contribution limit of 15,000 Ether and an individual contribution limit of 1,500 Ether. The ICO should become available to the general public during Phase General, with a total contribution limit equal to 30,000 Ether, inclusive of funds raised from the private phase. During this phase, the individual contribution limit should be 1,000 Ether, until Phase Open, at which point the individual contribution limit should be removed. At that point, the ICO contract should immediately release ERC20-compatible tokens for all contributors at an exchange rate of 5 tokens to 1 Ether. The owner of the contract should have the ability to pause and resume fundraising at any time, as well as move a phase forwards (but not backwards) at will.
 
 
 

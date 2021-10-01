@@ -1,26 +1,26 @@
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
-const web3 = require("Web3");
+const { expect } = require("chai")
+const { ethers } = require("hardhat")
+const web3 = require("Web3")
 
 describe("Space ICO - Base", () => {
 
   let space
   let spaceContract
-  let owner;
-  let investor1, investor2, investor3;
+  let owner
+  let investor1, investor2, investor3
 
   const SEED_INDIVIDUAL_LIMIT = '1500'
   const SEED_INDIVIDUAL_LIMIT_PLUS1 = '1501'
-  const SEED_PHASE = 0;
-  const GENERAL_PHASE = 1;
-  const OPEN_PHASE = 2;
+  const SEED_PHASE = 0
+  const GENERAL_PHASE = 1
+  const OPEN_PHASE = 2
 
 
   beforeEach( async () => {
     [owner, investor1, investor2, investor3] = await ethers.getSigners()
-    spaceContract = await ethers.getContractFactory("SpaceICO");
-    space = await spaceContract.connect(owner).deploy();
-    await space.deployed();
+    spaceContract = await ethers.getContractFactory("SpaceICO")
+    space = await spaceContract.connect(owner).deploy()
+    await space.deployed()
   })
 
   describe("Deployment", () => {
@@ -47,19 +47,19 @@ describe("Space ICO - Base", () => {
     })
     
     it("should allow regular contribution Seed Phase", async function () {
-      await space.connect(owner).allowList(investor1.address);
+      await space.connect(owner).allowList(investor1.address)
       const trx = space.connect(investor1).buy({value: web3.utils.toWei(SEED_INDIVIDUAL_LIMIT)})
       await expect(trx).to.emit(space, 'InvestmentReceived')
     })
 
     it("should not allow contribution to exceed individual max for Seed Phase", async function () {
-      await space.connect(owner).allowList(investor1.address);
+      await space.connect(owner).allowList(investor1.address)
       const trx = space.connect(investor1).buy({value: web3.utils.toWei(SEED_INDIVIDUAL_LIMIT_PLUS1)})
       await expect(trx).to.be.revertedWith('INDIVIDUAL_LIMIT_EXCEEDED')
     })
 
     it("should not allow contribution to exceed total max for Seed Phase", async function () { 
-      let accounts = await ethers.getSigners();
+      let accounts = await ethers.getSigners()
       for (let i = 0; i < 10; i++) {
         await space.connect(owner).allowList(accounts[i].address)
         await space.connect(accounts[i]).buy({value: web3.utils.toWei(SEED_INDIVIDUAL_LIMIT)})
@@ -96,32 +96,31 @@ describe("Space ICO - Base", () => {
       await expect(space.connect(owner).advancePhase()).to.be.revertedWith('MAX_PHASE')
     })
   })
-});
+})
 
 describe("Space ICO - General", () => {
   describe("General Phase", () => {
 
     let space
     let spaceContract
-    let owner;
-    let investor1, investor2, investor3;
+    let owner
+    let investor1, investor2, investor3
   
     const GENERAL_INDIVIDUAL_LIMIT = '1000'
     const GENERAL_INDIVIDUAL_LIMIT_PLUS1 = '1501'
-    const GENERAL_PHASE = '1';
+    const GENERAL_PHASE = 1
     
     beforeEach( async () => {
       [owner, investor1, investor2, investor3] = await ethers.getSigners()
-      spaceContract = await ethers.getContractFactory("SpaceICO");
-      space = await spaceContract.connect(owner).deploy();
-      await space.deployed();
+      spaceContract = await ethers.getContractFactory("SpaceICO")
+      space = await spaceContract.connect(owner).deploy()
+      await space.deployed()
       await space.connect(owner).advancePhase()
     })
     
     it("should confirm Phase is General", async function () {
-      const trx = space.icoPhase()
-      console.log(await trx)
-      await expect(space.icoPhase()).to.equal(GENERAL_PHASE)
+      const phase = await space.icoPhase()
+      await expect(phase).to.equal(GENERAL_PHASE)
     })
     
     it("should allow regular contribution General Phase", async function () {
@@ -135,13 +134,13 @@ describe("Space ICO - General", () => {
     })
   
     it("should not allow contribution to exceed individual max for General Phase", async function () {
-      await space.connect(owner).allowList(investor1.address);
+      await space.connect(owner).allowList(investor1.address)
       const trx = space.connect(investor1).buy({value: web3.utils.toWei(GENERAL_INDIVIDUAL_LIMIT_PLUS1)})
       await expect(trx).to.be.revertedWith('INDIVIDUAL_LIMIT_EXCEEDED')
     })
   
     it("should not allow contribution to exceed total max for General Phase", async function () { 
-      let accounts = await ethers.getSigners();
+      let accounts = await ethers.getSigners()
       for (let i = 0; i < 19; i++) {
         await space.connect(accounts[i]).buy({value: web3.utils.toWei(GENERAL_INDIVIDUAL_LIMIT)})
       }
@@ -159,29 +158,28 @@ describe("Space ICO - General", () => {
 
     let space
     let spaceContract
-    let owner;
-    let investor1, investor2, investor3;
+    let owner
+    let investor1, investor2, investor3
   
     const SEED_INDIVIDUAL_LIMIT_PLUS1 = '1501'
-    const OPEN_PHASE = '2';
+    const OPEN_PHASE = 2
     
     beforeEach( async () => {
       [owner, investor1, investor2, investor3] = await ethers.getSigners()
-      spaceContract = await ethers.getContractFactory("SpaceICO");
-      space = await spaceContract.connect(owner).deploy();
-      await space.deployed();
+      spaceContract = await ethers.getContractFactory("SpaceICO")
+      space = await spaceContract.connect(owner).deploy()
+      await space.deployed()
       await space.connect(owner).advancePhase()
       await space.connect(owner).advancePhase()
     })
     
     it("should confirm Phase is Open", async function () {
-      const trx = space.icoPhase()
-      console.log(await trx)
-      await expect(space.icoPhase()).to.equal(OPEN_PHASE)
+      const phase = await space.icoPhase()
+      await expect(phase).to.equal(OPEN_PHASE)
     })
     
     it("should allow regular contribution Open Phase", async function () {
-      const trx = space.connect(investor1).buy({value: web3.utils.toWei(SEED_INDIVIDUAL_LIMIT_PLUS1)})
+      const trx = space.connect(investor3).buy({value: web3.utils.toWei(SEED_INDIVIDUAL_LIMIT_PLUS1)})
       await expect(trx).to.emit(space, 'InvestmentReceived')
     })
   })
@@ -192,25 +190,24 @@ describe("Space ICO - General", () => {
 
     let space
     let spaceContract
-    let owner;
-    let investor1, investor2, investor3;
+    let owner
+    let investor1, investor2, investor3
   
     const SEED_INDIVIDUAL_LIMIT_PLUS1 = '1501'
-    const OPEN_PHASE = '2';
+    const OPEN_PHASE = 2
     
     beforeEach( async () => {
       [owner, investor1, investor2, investor3] = await ethers.getSigners()
-      spaceContract = await ethers.getContractFactory("SpaceICO");
-      space = await spaceContract.connect(owner).deploy();
-      await space.deployed();
+      spaceContract = await ethers.getContractFactory("SpaceICO")
+      space = await spaceContract.connect(owner).deploy()
+      await space.deployed()
       await space.connect(owner).advancePhase()
       await space.connect(owner).advancePhase()
     })
     
     it("should confirm Phase is Open", async function () {
-      const trx = space.icoPhase()
-      console.log(await trx)
-      await expect(space.icoPhase()).to.equal(OPEN_PHASE)
+      const phase = await space.icoPhase()
+      await expect(phase).to.equal(OPEN_PHASE)
     })
     
     it("should allow regular contribution Open Phase", async function () {
