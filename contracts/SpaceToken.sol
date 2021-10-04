@@ -14,14 +14,12 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract SpaceToken is ERC20 {
   
   uint private _initialSupply = 500000;
-  bool private _applyTax;
-  bool private _isTrading;
+  bool public applyTax;
   address private _owner;
   address payable private _treasury;
 
   constructor(address payable treasury_) ERC20("Space Token", "SPC") {
-    _applyTax = false;
-    _isTrading = false;
+    applyTax = false;
     _owner = msg.sender;
     _treasury = treasury_;
     _mint(msg.sender, _initialSupply * (10 ** decimals()));
@@ -35,23 +33,29 @@ contract SpaceToken is ERC20 {
     _;
   }
 
+  /**
+    * @dev Transfer tokens to recipient.
+    */
   function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
-    if (_applyTax) {
+    if (applyTax) {
       uint taxAmount = (amount / 100) * 2;
       amount -= taxAmount;
-      _transfer(msg.sender, _treasury, taxAmount);
+      _transfer(msg.sender, _treasury, taxAmount); 
     }
     _transfer(msg.sender, recipient, amount);
     return true;
   }
 
+  /**
+    * @dev Sets whether or not to apply 2% tax on all transfers.
+    */
   function setTax(bool shouldApplyTax) public onlyOwner returns (bool) {
-    _applyTax = shouldApplyTax;
-    return _applyTax;
+    applyTax = shouldApplyTax;
+    return applyTax;
   }
-
+  
   function taxStatus() public view onlyOwner returns (bool) {
-    return _applyTax;
+    return applyTax;
   }
 
   function treasury() public view returns (address) {

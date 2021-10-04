@@ -28,6 +28,17 @@ describe("Space ICO - Base", () => {
       const phase = await space.icoPhase()
       await expect(phase).to.equal(SEED_PHASE)
     })
+
+    it("fundraising should be allowed", async function () {
+      const status = await space.isFundraising()
+      await expect(status).to.equal(true)
+    })
+  })
+  describe("Pause Fundraising", () => {
+    it("should be", async function () {
+      const phase = await space.icoPhase()
+      await expect(phase).to.equal(SEED_PHASE)
+    })
   })
 
   describe("Seed Phase", () => {
@@ -203,6 +214,9 @@ describe("Space ICO - General", () => {
       await space.deployed()
       await space.connect(owner).advancePhase()
       await space.connect(owner).advancePhase()
+      spaceToken = await ethers.getContractFactory("SpaceToken")
+      spaceToken = await spaceContract.connect(owner).deploy()
+      await spaceToken.deployed()
     })
     
     it("should confirm Phase is Open", async function () {
