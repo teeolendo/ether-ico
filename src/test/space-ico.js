@@ -98,7 +98,6 @@ describe("Space ICO - Base", () => {
     it("should advance from seed to open", async function () {
       await space.connect(owner).advancePhaseToGeneral()
       await space.connect(owner).advancePhaseToOpen()
-      console.log(await space.icoPhase())
       await expect(space.icoPhase()).to.equal(OPEN_PHASE)
     })
     it("should not advance past open", async function () {

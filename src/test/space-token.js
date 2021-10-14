@@ -2,6 +2,7 @@ const { expect } = require("chai")
 const { ethers } = require("hardhat")
 const web3 = require("Web3")
 
+
 describe("SpaceToken", () => {
 
   let spaceToken
