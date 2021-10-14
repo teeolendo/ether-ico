@@ -14,12 +14,12 @@ import "./SpaceToken.sol";
  */
 contract SpaceICO {
     SpaceToken spaceToken;
-    uint private _ICO_TARGET = 30000 ether;
-    uint SEED_INDIVIDUAL_LIMIT = 1500 ether;
-    uint SEED_TOTAL_LIMIT = 15000 ether;
-    uint GENERAL_INDIVIDUAL_LIMIT = 1000 ether;
-    uint GENERAL_TOTAL_LIMIT = 30000 ether;
-    uint SPC_TO_ETH_RATE = 5;
+    uint private  ICO_TARGET = 30000 ether;
+    uint constant SEED_INDIVIDUAL_LIMIT = 1500 ether;
+    uint constant SEED_TOTAL_LIMIT = 15000 ether;
+    uint constant GENERAL_INDIVIDUAL_LIMIT = 1000 ether;
+    uint constant GENERAL_TOTAL_LIMIT = 30000 ether;
+    uint constant SPC_TO_ETH_RATE = 5;
     uint private _totalFunds;
     mapping(address => bool) _allowList;
     mapping(address => uint) _investors;
@@ -94,16 +94,23 @@ contract SpaceICO {
       isFundraising = _isFundraising;
     }
 
-    function advancePhase() external onlyOwner returns (Phase){
-      require(_currentPhase != Phase.Open, "MAX_PHASE");
-      _currentPhase = Phase(uint(_currentPhase) + 1); 
+    function advancePhaseToOpen() external onlyOwner returns (Phase){
+      require(_currentPhase == Phase.General, "PHASE_NOT_GENERAL");
+      _currentPhase = Phase.Open;
+      emit PhaseUpgraded();
+      return _currentPhase;
+    }
+
+    function advancePhaseToGeneral() external onlyOwner returns (Phase){
+      require(_currentPhase == Phase.Seed, "PHASE_NOT_SEED");
+      _currentPhase = Phase.General; 
       emit PhaseUpgraded();
       return _currentPhase;
     }
 
     function redeem() public onlyOpen returns (bool) {
       require(_investors[msg.sender] > 0, "INSUFFICIENT_BALANCE");
-      uint amount = (_investors[msg.sender] / 10 * spaceToken.decimals()) * SPC_TO_ETH_RATE;
+      uint amount = _investors[msg.sender] * SPC_TO_ETH_RATE;
       _investors[msg.sender] = 0;
       spaceToken.transfer(msg.sender, amount);
       return true;
