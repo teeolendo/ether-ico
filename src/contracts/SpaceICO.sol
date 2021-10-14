@@ -22,7 +22,7 @@ contract SpaceICO {
     uint SPC_TO_ETH_RATE = 5;
     uint private _totalFunds;
     mapping(address => bool) _allowList;
-    mapping(address => uint) _investors;
+    mapping(address => uint) _contributions;
     bool public isFundraising;
     address private _owner;
 
@@ -77,7 +77,7 @@ contract SpaceICO {
       }
 
       _totalFunds += msg.value;
-      _investors[msg.sender] += msg.value;
+      _contributions[msg.sender] += msg.value;
 
       if(_currentPhase == Phase.Open){
         redeem();
@@ -102,10 +102,21 @@ contract SpaceICO {
     }
 
     function redeem() public onlyOpen returns (bool) {
-      require(_investors[msg.sender] > 0, "INSUFFICIENT_BALANCE");
-      uint amount = (_investors[msg.sender] / 10 * spaceToken.decimals()) * SPC_TO_ETH_RATE;
-      _investors[msg.sender] = 0;
+      require(_contributions[msg.sender] > 0, "INSUFFICIENT_BALANCE");
+      uint amount = (_contributions[msg.sender] / 10 * spaceToken.decimals()) * SPC_TO_ETH_RATE;
+      _contributions[msg.sender] = 0;
       spaceToken.transfer(msg.sender, amount);
       return true;
+    }
+
+    function withdrawToPool(address to, uint amount) public onlyOpen returns (bool) {
+      require(_contributions[msg.sender] > 0, "INSUFFICIENT_BALANCE");
+      uint tokens = (_contributions[msg.sender] / (10 * spaceToken.decimals())) * SPC_TO_ETH_RATE;
+      uint totalInvestment = _contributions[msg.sender];
+      uint balanceBefore = spaceToken.balanceOf(msg.sender);
+      (bool success) = spaceToken.transfer(to, balanceBefore);
+      uint balanceAfter = spaceToken.balanceOf(msg.sender);
+      //send to LP Token
+      
     }
 }

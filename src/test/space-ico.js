@@ -199,34 +199,38 @@ describe("Space ICO - General", () => {
 describe("Space ICO - General", () => {
   describe("Mint Coins", () => {
 
-    let space
+    let SpaceICOContract
+    let spaceICOContract
+    let SpaceTokenContract
+    let spaceTokenContract
     let spaceContract
     let owner
+    let treasury
     let investor1, investor2, investor3
   
     const SEED_INDIVIDUAL_LIMIT_PLUS1 = '1501'
     const OPEN_PHASE = 2
     
     beforeEach( async () => {
-      [owner, investor1, investor2, investor3] = await ethers.getSigners()
-      spaceContract = await ethers.getContractFactory("SpaceICO")
-      space = await spaceContract.connect(owner).deploy()
-      await space.deployed()
-      await space.connect(owner).advancePhase()
-      await space.connect(owner).advancePhase()
-      spaceContract = await ethers.getContractFactory("SpaceToken")
-      space = await spaceContract.connect(owner).deploy()
-      await space.deployed()
+      [treasury ,owner, investor1, investor2, investor3] = await ethers.getSigners()
+      SpaceICOContract = await ethers.getContractFactory("SpaceICO")
+      spaceICOContract = await SpaceICOContract.connect(owner).deploy()
+      await spaceICOContract.deployed()
+      await spaceICOContract.connect(owner).advancePhase()
+      await spaceICOContract.connect(owner).advancePhase()
+      SpaceTokenContract = await ethers.getContractFactory("SpaceToken")
+      spaceTokenContract = await SpaceTokenContract.connect(owner).deploy(treasury.address)
+      await spaceTokenContract.deployed()
     })
     
     it("should confirm Phase is Open", async function () {
-      const phase = await space.icoPhase()
+      const phase = await spaceICOContract.icoPhase()
       await expect(phase).to.equal(OPEN_PHASE)
     })
     
     it("should allow regular contribution Open Phase", async function () {
-      const trx = space.connect(investor1).buy({value: web3.utils.toWei(SEED_INDIVIDUAL_LIMIT_PLUS1)})
-      await expect(trx).to.emit(space, 'InvestmentReceived')
+      const trx = spaceICOContract.connect(investor1).buy({value: web3.utils.toWei(SEED_INDIVIDUAL_LIMIT_PLUS1)})
+      await expect(trx).to.emit(spaceICOContract, 'InvestmentReceived')
     })
   })
 })
