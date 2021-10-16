@@ -13,7 +13,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
  */
 contract SpaceToken is ERC20 {
   
-  uint private _initialSupply = 500000;
+  uint private INITIAL_SUPPLY = 500000;
   bool public applyTax;
   address private _owner;
   address payable private _treasury;
@@ -22,7 +22,7 @@ contract SpaceToken is ERC20 {
     applyTax = false;
     _owner = msg.sender;
     _treasury = treasury_;
-    _mint(msg.sender, _initialSupply * (10 ** decimals()));
+    _mint(msg.sender, INITIAL_SUPPLY * (10 ** decimals()));
   }
 
   /**

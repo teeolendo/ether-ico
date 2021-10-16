@@ -27,15 +27,7 @@ module.exports = {
     compilers: [
       {
         version: "0.8.4",
-      },
-      {
-        version: "0.5.0",
-        settings: {},
-      },
-      {
-        version: "0.5.16",
-        settings: {},
-      },
+      }
     ],
   },
   networks: {

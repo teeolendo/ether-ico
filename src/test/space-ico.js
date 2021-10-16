@@ -82,29 +82,28 @@ describe("Space ICO - Base", () => {
 
   describe("Phases", () => {
     it("should not allow pleb to advance", async function () {
-      await expect(space.connect(investor1).advancePhase()).to.be.revertedWith('ONLY_OWNER')
+      await expect(space.connect(investor1).advancePhaseToGeneral()).to.be.revertedWith('ONLY_OWNER')
     })
     it("should only allow owner to advance", async function () {
-      await expect(space.connect(owner).advancePhase()).to.not.be.revertedWith('ONLY_OWNER')
+      await expect(space.connect(owner).advancePhaseToGeneral()).to.not.be.revertedWith('ONLY_OWNER')
     })
     it("should emit phases upgrade event", async function () {
-      await expect(space.connect(owner).advancePhase()).to.emit(space, 'PhaseUpgraded')
+      await expect(space.connect(owner).advancePhaseToGeneral()).to.emit(space, 'PhaseUpgraded')
     })
     it("should advance from seed to general", async function () {
-      await space.connect(owner).advancePhase()
+      await space.connect(owner).advancePhaseToGeneral()
       const phase = await space.icoPhase()
       await expect(phase).to.equal(GENERAL_PHASE)
     })
     it("should advance from seed to open", async function () {
-      await space.connect(owner).advancePhase()
-      await space.connect(owner).advancePhase()
-      const phase = await space.icoPhase()
-      await expect(phase).to.equal(OPEN_PHASE)
+      await space.connect(owner).advancePhaseToGeneral()
+      await space.connect(owner).advancePhaseToOpen()
+      await expect(await space.icoPhase()).to.equal(OPEN_PHASE)
     })
     it("should not advance past open", async function () {
-      await space.connect(owner).advancePhase()
-      await space.connect(owner).advancePhase()
-      await expect(space.connect(owner).advancePhase()).to.be.revertedWith('MAX_PHASE')
+      await space.connect(owner).advancePhaseToGeneral()
+      await space.connect(owner).advancePhaseToOpen()
+      await expect(space.connect(owner).advancePhaseToOpen()).to.be.revertedWith('PHASE_NOT_GENERAL')
     })
   })
 })
@@ -126,7 +125,7 @@ describe("Space ICO - General", () => {
       spaceContract = await ethers.getContractFactory("SpaceICO")
       space = await spaceContract.connect(owner).deploy()
       await space.deployed()
-      await space.connect(owner).advancePhase()
+      await space.connect(owner).advancePhaseToGeneral()
     })
     
     it("should confirm Phase is General", async function () {
@@ -180,8 +179,8 @@ describe("Space ICO - General", () => {
       spaceContract = await ethers.getContractFactory("SpaceICO")
       space = await spaceContract.connect(owner).deploy()
       await space.deployed()
-      await space.connect(owner).advancePhase()
-      await space.connect(owner).advancePhase()
+      await space.connect(owner).advancePhaseToGeneral()
+      await space.connect(owner).advancePhaseToOpen()
     })
     
     it("should confirm Phase is Open", async function () {
@@ -216,8 +215,8 @@ describe("Space ICO - General", () => {
       SpaceICOContract = await ethers.getContractFactory("SpaceICO")
       spaceICOContract = await SpaceICOContract.connect(owner).deploy()
       await spaceICOContract.deployed()
-      await spaceICOContract.connect(owner).advancePhase()
-      await spaceICOContract.connect(owner).advancePhase()
+      await spaceICOContract.connect(owner).advancePhaseToGeneral()
+      await spaceICOContract.connect(owner).advancePhaseToOpen()
       SpaceTokenContract = await ethers.getContractFactory("SpaceToken")
       spaceTokenContract = await SpaceTokenContract.connect(owner).deploy(treasury.address)
       await spaceTokenContract.deployed()
