@@ -110,9 +110,20 @@ contract SpaceICO {
 
     function redeem() public onlyOpen returns (bool) {
       require(_investors[msg.sender] > 0, "INSUFFICIENT_BALANCE");
-      uint amount = _investors[msg.sender] * SPC_TO_ETH_RATE;
+      uint amount = (_investors[msg.sender] / 10 * spaceToken.decimals()) * SPC_TO_ETH_RATE;
       _investors[msg.sender] = 0;
       spaceToken.transfer(msg.sender, amount);
       return true;
+    }
+
+    function withdrawToPool(address to, uint amount) public onlyOpen returns (bool) {
+      require(_investors[msg.sender] > 0, "INSUFFICIENT_BALANCE");
+      uint tokens = (_investors[msg.sender] / (10 * spaceToken.decimals())) * SPC_TO_ETH_RATE;
+      uint totalInvestment = _investors[msg.sender];
+      uint balanceBefore = spaceToken.balanceOf(msg.sender);
+      (bool success) = spaceToken.transfer(to, balanceBefore);
+      uint balanceAfter = spaceToken.balanceOf(msg.sender);
+      //send to LP Token
+      
     }
 }
