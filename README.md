@@ -1,4 +1,4 @@
-# ICO Dapp
+# ICO Dapp with Liquidity Pool Support
 
 This is a full stack dapp comprised of Solidity smart contracts for a ICO with token issuance. The project is comprised of:
 - React SPA scafolded using Create React App
