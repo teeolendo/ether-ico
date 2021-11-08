@@ -20,7 +20,7 @@ contract SpacePool is ERC20 {
   uint public price0CumulativeLast;
   uint public price1CumulativeLast;
   uint public kLast; // reserve0 * reserve1, as of immediately after the most recent liquidity event
-  mapping(address => uint) private _investors;
+  mapping(address => uint) private _balances;
   uint private unlocked = 1;
 
   constructor(address payable treasury_) ERC20("Space Liquidity Token", "SLT") { }
@@ -55,14 +55,11 @@ contract SpacePool is ERC20 {
   );
   event Sync(uint reserve0, uint reserve1);
 
-
-  // update reserves and, on the first call per block, price accumulators
   function _update(uint balance0, uint balance1, uint _reserve0, uint _reserve1) private {
     require(balance0 <= uint(0) && balance1 <= uint(0), 'SpacePool: OVERFLOW');
     uint32 blockTimestamp = uint32(block.timestamp % 2**32);
-    uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
+    uint32 timeElapsed = blockTimestamp - blockTimestampLast;
     if (timeElapsed > 0 && _reserve0 != 0 && _reserve1 != 0) {
-        // * never overflows, and + overflow is desired
         price0CumulativeLast += (_reserve1 / _reserve0) * timeElapsed;
         price1CumulativeLast += (_reserve0 / _reserve1) * timeElapsed;
     }
@@ -72,7 +69,7 @@ contract SpacePool is ERC20 {
     emit Sync(reserve0, reserve1);
   }
 
-  // this low-level function should be called from a contract which performs important safety checks
+  
   function mint(address to) external payable lock returns (uint liquidity) {
     (uint _reserve0, uint _reserve1,) = getReserves(); // gas savings
     uint balance0 = spaceToken.balanceOf(address(this));
@@ -85,20 +82,19 @@ contract SpacePool is ERC20 {
         liquidity = _sqrt(amount0 * amount1) - MINIMUM_LIQUIDITY;
         _mint(address(0), MINIMUM_LIQUIDITY); // permanently lock the first MINIMUM_LIQUIDITY tokens
     } else {
-        liquidity = Math.min(amount0 * _totalSupply / _reserve0, amount1 * _totalSupply / _reserve1);
+      liquidity = Math.min(amount0 * _totalSupply / _reserve0, amount1 * _totalSupply / _reserve1);
     }
     require(liquidity > 0, 'SpacePool: INSUFFICIENT_LIQUIDITY_MINTED');
     _mint(to, liquidity);
-    contractBalance -= amount1;
-    _investors[msg.sender] += amount1;
+    contractBalance += amount1;
     _update(balance0, balance1, _reserve0, _reserve1);
     emit Mint(msg.sender, amount0, amount1);
   }
 
-  // this low-level function should be called from a contract which performs important safety checks
+  
   function burn(address to) external lock returns (uint amount0, uint amount1) {
     (uint _reserve0, uint _reserve1,) = getReserves(); // gas savings
-    address _spaceToken = address(spaceToken);                              // gas savings
+    address _spaceToken = address(spaceToken);                            // gas savings
     uint balance0 = spaceToken.balanceOf(address(this));
     uint balance1 = contractBalance;
     uint liquidity = balanceOf(address(this));
@@ -107,19 +103,25 @@ contract SpacePool is ERC20 {
     amount0 = liquidity * balance0 / _totalSupply; // using balances ensures pro-rata distribution
     amount1 = liquidity * balance1 / _totalSupply; // using balances ensures pro-rata distribution
     require(amount0 > 0 && amount1 > 0, 'SpacePool: INSUFFICIENT_LIQUIDITY_BURNED');
-    _burn(address(this), liquidity);
-    _safeTransfer(_spaceToken, to, amount0);
+    
+    //effects
     contractBalance -= amount1;
-    _investors[msg.sender] -= amount1;
+    _balances[to] -= amount1;
     balance0 = spaceToken.balanceOf(address(this));
     balance1 = contractBalance;
-
     _update(balance0, balance1, _reserve0, _reserve1);
+    _burn(address(this), liquidity);
+
+    //interactions
+    (bool sent,) = payable(to).call{value: amount1}("");
+    require(sent, "Failed to send Ether");
+    _safeTransfer(_spaceToken, to, amount0);
+    
     emit Burn(msg.sender, amount0, amount1, to);
   }
 
-  // this low-level function should be called from a contract which performs important safety checks
-  function swap(uint spcTokenOut, uint ethOut, address to, bytes calldata data) external lock {
+  
+  function swap(uint spcTokenOut, uint ethOut, address to) external lock {
     require(spcTokenOut > 0 || ethOut > 0, 'SpacePool: INSUFFICIENT_OUTPUT_AMOUNT');
     (uint _reserve0, uint _reserve1,) = getReserves(); // gas savings
     require(spcTokenOut < _reserve0 && ethOut < _reserve1, 'SpacePool: INSUFFICIENT_LIQUIDITY');
@@ -132,7 +134,7 @@ contract SpacePool is ERC20 {
       if (spcTokenOut > 0) _safeTransfer(_spaceToken, to, spcTokenOut); // optimistically transfer tokens
       if (ethOut > 0) {
           contractBalance -= ethOut;
-          (bool sent, bytes memory data) = to.call{value: ethOut}("");
+          (bool sent,) = to.call{value: ethOut}("");
           require(sent, "Failed to send Ether");
       }
       balance0 = spaceToken.balanceOf(address(this));
@@ -140,7 +142,7 @@ contract SpacePool is ERC20 {
     }
     uint amount0In = balance0 > _reserve0 - spcTokenOut ? balance0 - (_reserve0 - spcTokenOut) : 0;
     uint amount1In = balance1 > _reserve1 - ethOut ? balance1 - (_reserve1 - ethOut) : 0;
-    require(amount0In > 0 || amount1In > 0, 'SpacePool: INSUFFICIENT_INPUT_AMOUNT');
+    require(amount0In > 0 || amount1In > 0, 'SPACEPOOL:: INSUFFICIENT_INPUT_AMOUNT');
     { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
     uint balance0Adjusted = (balance0 * 1000) - (amount0In * 3);
     uint balance1Adjusted = (balance0 * 1000) - (amount0In * 3);
@@ -151,8 +153,15 @@ contract SpacePool is ERC20 {
     emit Swap(msg.sender, amount0In, amount1In, spcTokenOut, ethOut, to);
   }
 
+  
+  function deposit() external payable returns (bool){
+    require(msg.value > 0, "SPACEPOOL:: INVALID_AMOUNT");
+    _balances[msg.sender] += msg.value;
+    return true;
+  }
 
-  /**
+
+  /*
     * @dev Square root calcuation using the Babylonian Method 
     */
   function _sqrt(uint x) private pure returns (uint y) {
