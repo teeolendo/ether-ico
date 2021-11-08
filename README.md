@@ -9,9 +9,11 @@ This is a full stack dapp comprised of Solidity smart contracts for a ICO with t
 
 # Implementation
 
-Two smart contracts are contained in the `src/contracts` folder. These are the:
+4 smart contracts are contained in the `src/contracts` folder. These are the:
 - SpaceICO: ICO Management Smart Contract
 - Spacetoken: ERC20-compliant smart contract
+- SpaceRouter: Liquiditing Pool router
+- SpacePool: Ether and SpaceToken Liquidity Pool contract based on Uniswap V2
 - Two basic unit tests in `src/test` for both smart contracts.
 
 # Project Brief
